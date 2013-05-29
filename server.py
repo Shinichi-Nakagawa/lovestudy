@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from hashlib import md5
 from flask import Flask, session, request, redirect, render_template, url_for
 
 app = Flask(__name__)
 # cookie を暗号化する秘密鍵 (本来はランダムに作る)
-app.config['SECRET_KEY'] = 'The secret key which ciphers the cookie'
+app.config['SECRET_KEY'] = md5("hogehoge").hexdigest()
 
 
 # 各 route() 関数の前に実行される処理
