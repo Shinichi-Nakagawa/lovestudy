@@ -1,58 +1,108 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from hashlib import md5
-from flask import Flask, session, request, redirect, render_template, url_for
+import json
+from app_conf import *
+from flask import Flask, request, render_template, Response
 
 app = Flask(__name__)
-# cookie を暗号化する秘密鍵 (本来はランダムに作る)
-app.config['SECRET_KEY'] = md5("hogehoge").hexdigest()
 
 
-# 各 route() 関数の前に実行される処理
-@app.before_request
-def before_request():
-    # セッションに username が保存されている (= ログイン済み)
-    if session.get('username') is not None:
-        return
-    # リクエストがログインページに関するもの
-    if request.path == '/login':
-        return
-    # ログインされておらずログインページに関するリクエストでもなければリダイレクトする
-    return redirect('/login')
+def request2params():
+    """
+    Requestオブジェクトからパラメータ取得
+    """
+    if request.method == 'POST':
+        params = request.form
+    elif request.method == 'GET':
+        params = request.args
+    else:
+        params = {}
+    return params
 
 
-@app.route('/', methods=['GET'])
-def index():
-    # インデックスページを表示する
-    return render_template('index.html')
+def response2json(value):
+    """
+    JSONレスポンス生成(RESTful API用)
+    """
+    return Response(json.dumps(value), mimetype="application/json")
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    # ログイン処理
-    if request.method == 'POST' and _is_account_valid():
-            # セッションにユーザ名を保存してからインデックスページにリダイレクトする
-            session['username'] = request.form['username']
-            return redirect(url_for('index'))
-    # ログインページを表示する
-    return render_template('login.html')
+@app.route('/top.html', methods=['GET'])
+def top():
+    """
+    Top画面
+    """
+    return render_template('index.html', value={"name": u"これはルート画面です"})
 
 
-# 正規のアカウントかチェックする関数
-def _is_account_valid():
-    # リクエストに username が含まれていれば通す
-    if request.form.get('username') is None:
-        return False
-    return True
+@app.route('/result.html', methods=['GET'])
+def result():
+    """
+    履歴（成績）画面
+    """
+    return render_template('index.html', value={"name": u"これは履歴画面です"})
 
 
-@app.route('/logout', methods=['GET'])
-def logout():
-    #セッションからユーザ名を取り除く (ログアウトの状態にする)
-    session.pop('username', None)
-    # ログインページにリダイレクトする
-    return redirect(url_for('login'))
+@app.route(URL_FOR_INIT, methods=['POST', 'GET'])
+def init():
+    """
+    初期化
+    """
+    params = request2params()
+    print params
+    value = {"message": u"initialize Done."}
+
+    return response2json(value)
+
+
+@app.route(URL_FOR_METER_ON, methods=['POST', 'GET'])
+def meter_on():
+    """
+    メーターをONする
+    """
+    params = request2params()
+    print params
+    value = {"message": u"メーターに追加"}
+
+    return response2json(value)
+
+
+@app.route(URL_FOR_METER_OFF, methods=['POST', 'GET'])
+def meter_off():
+    """
+    メーターをOFFする
+    """
+    params = request2params()
+    print params
+    value = {"message": u"メーターを下げる"}
+
+    return response2json(value)
+
+
+@app.route(URL_FOR_METER_SHOW, methods=['GET'])
+def meter_show():
+    """
+    メーターを見る
+    """
+    params = request2params()
+    print params
+    value = {"message": u"メーターを見る"}
+
+    return response2json(value)
+
+
+@app.route(URL_FOR_DATE_SHOW, methods=['GET'])
+def date_show():
+    """
+    デートの約束を確認する
+    """
+    params = request2params()
+    print params
+    value = {"message": u"デートの約束を確認"}
+
+    return response2json(value)
+
 
 if __name__ == '__main__':
-    app.run(debug=True,host="0.0.0.0",port=8080)
+    app.run(debug=True, host="0.0.0.0", port=8080)
