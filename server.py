@@ -1,32 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pymongo import *
 from datetime import datetime
 import json
 from app_conf import *
 from flask import Flask, request, render_template, Response
+from love_gauge import LoveGauge
 
 app = Flask(__name__)
-
-
-def column_heart():
-    # TODO 面倒くさいのでKeyは固定
-    return {"key": 1, "heart": 0, "date": 0, "switch": OFF, "time": None}
-
-
-def get_heart(coll):
-    cnt = coll.find(P_KEY).count()
-    if cnt == 0:
-        return column_heart()
-    else:
-        return coll.find_one(P_KEY)
-
-
-def gen_coll():
-    con = Connection("127.0.0.1", 27017)
-    db = con.love
-    return db[COLLECTION]
+cl = LoveGauge()
 
 
 def now_time():
@@ -75,7 +57,7 @@ def init():
     初期化
     """
     params = request2params()
-    coll = gen_coll()
+    coll = cl.gen_coll()
     coll.remove(P_KEY)
     value = {"switch": OFF, "status": "init"}
 
@@ -89,8 +71,8 @@ def meter_on():
     """
     params = request2params()
     now = now_time()
-    coll = gen_coll()
-    row = get_heart(coll)
+    coll = cl.gen_coll()
+    row = cl.get_heart(coll)
     row["time"] = now
     row["switch"] = ON
     coll.save(row)
@@ -107,8 +89,8 @@ def meter_off():
     """
     params = request2params()
     now = now_time()
-    coll = gen_coll()
-    row = get_heart(coll)
+    coll = cl.gen_coll()
+    row = cl.get_heart(coll)
     row["time"] = now
     row["switch"] = OFF
     coll.save(row)
@@ -124,8 +106,8 @@ def meter_show():
     メーターを見る
     """
     params = request2params()
-    coll = gen_coll()
-    row = get_heart(coll)
+    coll = cl.gen_coll()
+    row = cl.get_heart(coll)
     value = {}
     for key in ("heart", "date"):
         value[key] = row[key]
@@ -139,8 +121,8 @@ def date_show():
     デートの約束を確認する
     """
     params = request2params()
-    coll = gen_coll()
-    row = get_heart(coll)
+    coll = cl.gen_coll()
+    row = cl.get_heart(coll)
     value = {}
     for key in ("date",):
         value[key] = row[key]
@@ -150,4 +132,3 @@ def date_show():
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)
-    #app.run(debug=True, host="127.0.0.1", port=8080)
