@@ -75,8 +75,9 @@ def init():
     初期化
     """
     params = request2params()
-    # TODO MongoDBを初期化
-    value = {"message": u"initialize Done."}
+    coll = gen_coll()
+    coll.remove(P_KEY)
+    value = {"switch": OFF, "status": "init"}
 
     return response2json(value)
 
