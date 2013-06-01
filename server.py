@@ -1,11 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pymongo import *
+from datetime import datetime
 import json
 from app_conf import *
 from flask import Flask, request, render_template, Response
 
 app = Flask(__name__)
+
+
+def column_heart():
+    # TODO 面倒くさいのでKeyは固定
+    return {"key": 1, "heart": 0, "date": 0, "switch": OFF, "time": None}
+
+
+def get_heart(coll):
+    cnt = coll.find(P_KEY).count()
+    if cnt == 0:
+        return column_heart()
+    else:
+        return coll.find_one(P_KEY)
+
+
+def gen_coll():
+    con = Connection("127.0.0.1", 27017)
+    db = con.love
+    return db[COLLECTION]
+
+
+def now_time():
+    return datetime.now()
 
 
 def request2params():
@@ -50,7 +75,7 @@ def init():
     初期化
     """
     params = request2params()
-    print params
+    # TODO MongoDBを初期化
     value = {"message": u"initialize Done."}
 
     return response2json(value)
@@ -62,8 +87,14 @@ def meter_on():
     メーターをONする
     """
     params = request2params()
-    print params
-    value = {"message": u"メーターに追加"}
+    now = now_time()
+    coll = gen_coll()
+    row = get_heart(coll)
+    row["time"] = now
+    row["switch"] = ON
+    coll.save(row)
+
+    value = {"switch": ON}
 
     return response2json(value)
 
@@ -74,8 +105,14 @@ def meter_off():
     メーターをOFFする
     """
     params = request2params()
-    print params
-    value = {"message": u"メーターを下げる"}
+    now = now_time()
+    coll = gen_coll()
+    row = get_heart(coll)
+    row["time"] = now
+    row["switch"] = OFF
+    coll.save(row)
+
+    value = {"switch": OFF}
 
     return response2json(value)
 
@@ -86,8 +123,11 @@ def meter_show():
     メーターを見る
     """
     params = request2params()
-    print params
-    value = {"message": u"メーターを見る"}
+    coll = gen_coll()
+    row = get_heart(coll)
+    value = {}
+    for key in ("heart", "date"):
+        value[key] = row[key]
 
     return response2json(value)
 
@@ -98,11 +138,15 @@ def date_show():
     デートの約束を確認する
     """
     params = request2params()
-    print params
-    value = {"message": u"デートの約束を確認"}
+    coll = gen_coll()
+    row = get_heart(coll)
+    value = {}
+    for key in ("date",):
+        value[key] = row[key]
 
     return response2json(value)
 
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)
+    #app.run(debug=True, host="127.0.0.1", port=8080)
