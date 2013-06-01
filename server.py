@@ -58,7 +58,7 @@ def top():
     """
     Top画面
     """
-    return render_template('index.html', value={"name": u"これはルート画面です"})
+    return render_template('top.html', value={"name": u"これはルート画面です"})
 
 
 @app.route('/result.html', methods=['GET'])
