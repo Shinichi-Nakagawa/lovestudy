@@ -26,6 +26,9 @@ URL_FOR_INIT = "/init.json"
 MAX_HEART = 100
 MIN_HEART = 0
 
+INC_HEART = 20
+DEC_HEART = 1
+
 ON = True
 OFF = False
 
